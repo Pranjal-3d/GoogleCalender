@@ -37,7 +37,8 @@ import { useCalendar } from '../context/CalendarContext';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface SidebarProps {
-  onOpenBookingPage?: () => void;
+  onOpenBookingPage: () => void;
+  onClose?: () => void;
 }
 
 const CALENDAR_COLORS = [
@@ -45,7 +46,7 @@ const CALENDAR_COLORS = [
   '#e67c73', '#f6bf26', '#f4511e', '#616161',
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ onOpenBookingPage }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onOpenBookingPage, onClose }) => {
   const { currentDate, setCurrentDate, events, viewMode, setViewMode, toggleCalendar, hiddenCalendars } = useCalendar();
   const [searchQuery, setSearchQuery] = useState('');
   const [myCalendarsOpen, setMyCalendarsOpen] = useState(true);
@@ -169,9 +170,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onOpenBookingPage }) => {
   return (
     <>
       <aside
-        className="w-[256px] h-full shrink-0 flex flex-col py-4 gap-3 overflow-y-auto"
+        className="w-full h-full flex flex-col py-4 gap-3 overflow-y-auto"
         style={{ background: '#ffffff', borderRight: '1px solid #dadce0' }}
       >
+        {/* Mobile Close Button */}
+        <div className="flex md:hidden items-center justify-between px-4 mb-2">
+            <span className="text-[14px] font-bold text-[#1a73e8]">Menu</span>
+            <button 
+                onClick={onClose}
+                className="p-1.5 rounded-full hover:bg-gray-100 text-[#5f6368]"
+            >
+                <X size={20} />
+            </button>
+        </div>
         {/* Mini Calendar (Now First) */}
         <div className="px-3">
           <div className="flex items-center justify-between mb-1 px-1">

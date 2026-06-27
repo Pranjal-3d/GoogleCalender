@@ -24,6 +24,19 @@ const App: React.FC = () => {
   const [aiPrefilledStart, setAiPrefilledStart] = useState<Date | null>(null);
   const [aiPrefilledEnd, setAiPrefilledEnd] = useState<Date | null>(null);
   const [aiPrefilledTitle, setAiPrefilledTitle] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile) setSidebarOpen(false);
+      else setSidebarOpen(true);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleOpenModal = (type: string = 'event', event?: any, date?: Date) => {
     if (type === 'appointment_panel' || (type === 'appointment' && !event && !date)) {
@@ -144,25 +157,50 @@ const App: React.FC = () => {
           sidebarOpen={sidebarOpen}
         />
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Animated sidebar */}
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Mobile Overlay */}
+          <AnimatePresence>
+            {isMobile && sidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 z-[150] bg-black/30 backdrop-blur-[2px] lg:hidden"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Sidebar Container */}
           <div
-            className="overflow-hidden transition-all duration-300 ease-in-out shrink-0"
-            style={{ width: sidebarOpen ? '256px' : '0px' }}
+            className={`transition-all duration-300 ease-in-out shrink-0 z-[160] 
+                ${isMobile ? 'fixed inset-y-0 left-0 bg-white shadow-2xl' : 'relative'}
+            `}
+            style={{ 
+                width: sidebarOpen ? (isMobile ? '280px' : '256px') : '0px',
+                transform: isMobile && !sidebarOpen ? 'translateX(-100%)' : 'translateX(0)'
+            }}
           >
-            <Sidebar onOpenBookingPage={() => setBookingPageOpen(true)} />
+            <Sidebar 
+                onOpenBookingPage={() => setBookingPageOpen(true)} 
+                onClose={() => setSidebarOpen(false)}
+            />
           </div>
 
-          {/* Main calendar area — shrinks when AI panel is open */}
+          {/* Main calendar area */}
           <main
-            className="flex-1 overflow-hidden relative transition-all duration-300"
-            style={{ marginRight: aiOpen ? '420px' : '0px' }}
+            className="flex-1 overflow-x-auto overflow-y-hidden relative transition-all duration-300 min-w-0"
+            style={{ 
+                marginRight: !isMobile && aiOpen ? '420px' : '0px'
+            }}
           >
-            <CalendarView
-              onEventClick={(event: any) => handleOpenModal('event', event)}
-              onCellClick={(date: Date) => handleOpenModal('event', undefined, date)}
-              onDropDraft={handleDropDraft}
-            />
+            <div className="min-w-[600px] sm:min-w-0 h-full">
+                <CalendarView
+                    onEventClick={(event: any) => handleOpenModal('event', event)}
+                    onCellClick={(date: Date) => handleOpenModal('event', undefined, date)}
+                    onDropDraft={handleDropDraft}
+                />
+            </div>
           </main>
         </div>
 

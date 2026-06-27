@@ -99,18 +99,18 @@ const Header: React.FC<HeaderProps> = ({ onOpenModal, onToggleSidebar, sidebarOp
            </button>
            <div className="flex items-center gap-2 ml-1 cursor-pointer">
               <Calendar size={28} className="text-[#1a73e8]" />
-              <span className="text-[22px] text-[#5f6368] font-normal tracking-tight">Calendar</span>
+              <span className="hidden sm:inline-block text-[22px] text-[#5f6368] font-normal tracking-tight">Calendar</span>
            </div>
         </div>
 
         <button
           onClick={() => setCurrentDate(new Date())}
-          className="ml-4 px-4 py-1.5 rounded border border-[#dadce0] text-[14px] font-medium text-[#3c4043] hover:bg-gray-50 transition-colors"
+          className="px-3 sm:px-4 py-1.5 rounded border border-[#dadce0] text-[13px] sm:text-[14px] font-medium text-[#3c4043] hover:bg-gray-50 transition-colors"
         >
           Today
         </button>
 
-        <div className="flex items-center gap-1 ml-2">
+        <div className="flex items-center gap-0.5 sm:gap-1 ml-1 sm:ml-2">
            <button onClick={() => navigate('prev')} className="p-2 rounded-full hover:bg-gray-100 text-[#5f6368]">
               <ChevronLeft size={18} />
            </button>
@@ -119,16 +119,16 @@ const Header: React.FC<HeaderProps> = ({ onOpenModal, onToggleSidebar, sidebarOp
            </button>
         </div>
 
-        <h2 className="text-[22px] text-[#3c4043] font-normal ml-2">
-          {format(currentDate, viewMode === 'day' ? 'MMMM d, yyyy' : 'MMMM yyyy')}
+        <h2 className="text-[16px] sm:text-[22px] text-[#3c4043] font-normal ml-1 sm:ml-2 truncate max-w-[120px] sm:max-w-none">
+          {format(currentDate, viewMode === 'day' ? 'MMM d, yyyy' : 'MMM yyyy')}
         </h2>
 
-        <div className="flex-1 max-w-2xl mx-8">
+        <div className="hidden md:flex flex-1 max-w-2xl mx-8">
            <div className={`relative flex items-center transition-all duration-300 ${searchOpen ? 'w-full' : 'w-48'} group`}>
               <Search size={18} className="absolute left-3 text-[#5f6368] group-focus-within:text-[#1a73e8]" />
               <input 
                 type="text"
-                placeholder="Search events, people, goals..."
+                placeholder="Search"
                 value={searchQuery}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={() => !searchQuery && setSearchOpen(false)}
@@ -138,39 +138,24 @@ const Header: React.FC<HeaderProps> = ({ onOpenModal, onToggleSidebar, sidebarOp
            </div>
         </div>
 
-        <div className="flex items-center gap-2 pr-2">
-           {/* Daily Progress */}
-           <div className="hidden lg:flex flex-col items-end mr-4">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#5f6368] uppercase tracking-wider">
-                <Clock size={12} />
-                Day Progress
-              </div>
-              <div className="w-32 h-1.5 bg-gray-100 rounded-full mt-1.5 overflow-hidden border border-gray-200">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: '65%' }} // Mocked progress
-                  className="h-full bg-gradient-to-r from-[#1a73e8] to-[#6366f1]"
-                />
-              </div>
-           </div>
-
+        <div className="flex items-center gap-1 sm:gap-2 pr-1 ml-auto">
            {/* Focus Mode Toggle */}
            <button 
              onClick={() => setFocusMode(!focusMode)}
-             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${focusMode ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-lg' : 'bg-white border-[#dadce0] text-[#3c4043] hover:bg-gray-50'}`}
+             className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${focusMode ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-lg' : 'bg-white border-[#dadce0] text-[#3c4043] hover:bg-gray-50'}`}
              title="Toggle Focus Mode"
            >
               <Target size={16} className={focusMode ? 'animate-pulse' : ''} />
-              <span className="text-[13px] font-semibold">{focusMode ? 'Focusing' : 'Focus Mode'}</span>
+              <span className="hidden lg:inline text-[13px] font-semibold">{focusMode ? 'Focusing' : 'Focus Mode'}</span>
            </button>
 
-           <div className="w-px h-8 bg-gray-200 mx-2" />
+           <div className="hidden sm:block w-px h-8 bg-gray-200 mx-1 sm:mx-2" />
            
            {/* View Selector Dropdown */}
            <div className="relative" ref={viewBtnRef}>
               <button 
                 onClick={() => setViewDropdownOpen(!viewDropdownOpen)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded border border-[#dadce0] hover:bg-gray-50 text-[14px] font-medium text-[#3c4043]"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded border border-[#dadce0] hover:bg-gray-50 text-[13px] sm:text-[14px] font-medium text-[#3c4043]"
               >
                 <span>{getViewLabel()}</span>
                 <ChevronDown size={14} className="mt-0.5" />
@@ -234,7 +219,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenModal, onToggleSidebar, sidebarOp
            <button
              ref={createBtnRef}
              onClick={() => setPickerOpen((p) => !p)}
-             className="flex items-center gap-2 ml-4 pl-2 pr-5 py-2.5 bg-white border border-[#dadce0] rounded-full shadow hover:shadow-md transition-all group"
+             className="hidden sm:flex items-center gap-2 ml-1 sm:ml-4 pl-2 pr-5 py-2.5 bg-white border border-[#dadce0] rounded-full shadow hover:shadow-md transition-all group"
            >
              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white group-hover:bg-gray-50 text-[#1a73e8]">
                  <Plus size={24} strokeWidth={2.5} />

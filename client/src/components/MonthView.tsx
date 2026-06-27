@@ -46,16 +46,17 @@ const MonthView: React.FC<MonthViewProps> = ({ onEventClick, onCellClick, onDrop
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
           <div
             key={d}
-            className="py-2.5 text-center text-[11px] font-bold uppercase tracking-widest"
+            className="py-2.5 text-center text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
             style={{ color: 'var(--text-muted)' }}
           >
-            {d}
+            <span className="hidden sm:inline">{d}</span>
+            <span className="sm:hidden">{d[0]}</span>
           </div>
         ))}
       </div>
 
       {/* Grid */}
-      <div className="calendar-grid-body flex-1">
+      <div className="calendar-grid-body flex-1 overflow-y-auto min-h-0">
         {days.map((day, i) => {
           const dayEvents = getEventsForDay(day);
           const inMonth = isSameMonth(day, currentDate);

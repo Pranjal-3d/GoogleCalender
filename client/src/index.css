@@ -95,22 +95,37 @@ body {
 
 /* ===== Event Pills ===== */
 .event-pill {
-  border-radius: 5px;
-  padding: 2px 7px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-weight: 500;
   cursor: pointer;
   transition: filter 0.15s ease, transform 0.1s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: 0.01em;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 640px) {
+  .event-pill {
+    padding: 2px 7px;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  }
 }
 
 .event-pill:hover {
   filter: brightness(1.15);
   transform: scaleY(1.03);
+}
+
+@media (max-width: 768px) {
+  .event-pill:hover {
+    transform: none; /* Disable hover scale on mobile */
+  }
 }
 
 .event-pill:active {
