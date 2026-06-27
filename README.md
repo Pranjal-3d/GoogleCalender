@@ -307,7 +307,7 @@ sequenceDiagram
     participant Ctx as CalendarContext State
     participant AI as OpenRouter GPT-4o-mini
     participant API as Express Server API
-    database DB as MongoDB
+    participant DB as MongoDB
 
     User->>UI: "Schedule focus block tomorrow afternoon"
     UI->>Ctx: Extract upcoming 14-day schedule + current date
