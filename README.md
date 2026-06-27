@@ -293,97 +293,27 @@ Standard calendar apps treat all events as equal-weight and simply block new boo
 
 ---
 
-### 2. AI Intelligent Schedule Assistant
+### 2. AI Intelligent Schedule Assistant 🤖 *(Bonus Feature)*
 
-The AI Schedule Helper is a side-panel chat assistant powered by `openai/gpt-4o-mini` via OpenRouter. It reads the user's real-time event context and helps find, reason about, and book available time slots through natural language.
+The **AI Schedule Assistant** is a side-panel chat interface powered by `openai/gpt-4o-mini` via OpenRouter. It acts as a personal scheduling concierge — the user types a natural language request like *"Schedule a focus block tomorrow afternoon"* and the assistant responds with the 3 best available time slots, each with a score and a reason.
 
-#### 2.1 System Prompt Architecture & Flow
+What makes it powerful is that it doesn't just rely on an abstract calendar — it reads the user's **actual live event data** from `CalendarContext`, injects it into the LLM system prompt, and uses that context to determine real gaps in the schedule. The assistant is aware of holiday events, business hours constraints, and avoids suggesting slots that are back-to-back with existing meetings.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User Chat Input
-    participant UI as AIAssistant Component
-    participant Ctx as CalendarContext State
-    participant AI as OpenRouter GPT-4o-mini
-    participant API as Express Server API
-    participant DB as MongoDB
+Each suggested slot is rendered as an **interactive card** in the chat panel. Clicking **"Book this slot"** instantly pre-populates the event creation modal and saves the event in one step — no manual time-picking required. Once saved, the calendar view auto-refreshes to show the newly booked event.
 
-    User->>UI: "Schedule focus block tomorrow afternoon"
-    UI->>Ctx: Extract upcoming 14-day schedule + current date
-    Ctx-->>UI: Return Event Array JSON
-    UI->>AI: Send Prompt (Context Schema + User message)
-    Note over AI: Analyzes free time, scores slots, formats response JSON
-    AI-->>UI: Return conversational text + suggested slots JSON
-    UI->>UI: Parse & render interactive slot button cards
-    User->>UI: Click "Book this slot" on Option #1
-    UI->>API: POST /api/events (Title, StartTime, EndTime)
-    Note over API: Runs priority & overlap validation
-    API->>DB: Save Event Document
-    DB-->>API: Persist confirmation
-    API-->>UI: Return HTTP 201 Created
-    UI->>Ctx: Re-fetch events → calendar auto-updates
-```
-
-#### 2.2 Structured Slot Response Format
-
-The AI returns a hybrid response — conversational text + a parseable JSON block:
-
-```json
-{
-  "slots": [
-    {
-      "start": "2026-06-28T14:00:00.000Z",
-      "end":   "2026-06-28T15:00:00.000Z",
-      "label": "Focus Block — Saturday Afternoon",
-      "score": 9,
-      "reason": "No meetings within 2-hour buffer, aligned with your past focus patterns"
-    }
-  ]
-}
-```
-
-The client strips the JSON block from chat display and mounts interactive **"Book this slot"** cards. One click pre-populates the event modal and saves instantly.
-
-#### 2.3 Edge Cases Handled
-- **Holiday exemptions**: Events marked as holidays are highlighted in the context but not treated as busy-blocks for scheduling.
-- **Business hours enforcement**: The system prompt restricts slot suggestions to `09:00–20:00` local time by default.
-- **Back-to-back buffer**: AI is instructed to prefer slots with at least 15-minute breathing room between existing events.
+The AI response is a hybrid format — conversational explanation followed by a structured JSON block that the client parses silently to build the slot cards, keeping the chat feel natural while still being machine-readable.
 
 ---
 
-### 3. Daily Habit Tracker
+### 3. Daily Habit Tracker 💧 *(Bonus Feature)*
 
-Designed to build consistent daily routines with integrated alarm notifications.
+The **Daily Habit Tracker** lives in the sidebar and lets users build and maintain daily routines without ever leaving the calendar. Each habit is a persistent document in MongoDB with a name, emoji, color, and a running log of completed dates.
 
-#### 3.1 Timezone-Stable Toggle Logic
+Users can create custom habits, check them off each day with a single click, set optional alarm times, and delete habits they no longer need. On first launch, the server automatically seeds four starter habits — Drink Water 💧, Read 📖, Work Out 🏋️, and Meditate 🧘 — so the tracker feels immediately useful with no manual setup.
 
-```mermaid
-flowchart TD
-    style Start fill:#f1f3f4,stroke:#5f6368
-    style Normalize fill:#f3e8ff,stroke:#8a2be2
-    style Find fill:#c2e7ff,stroke:#0057b8
-    style Save fill:#e6f4ea,stroke:#137333
+The trickiest technical part was **timezone-safe completion tracking**. When a user checks off a habit at 11 PM in IST (UTC+5:30), the raw timestamp stored in UTC would be `18:30 UTC` — technically the *previous calendar day*. To fix this, the backend normalizes every toggle date to `00:00:00.000 UTC midnight` before storing it, so the completion is always tied to the correct calendar date regardless of what timezone the user is in.
 
-    Start([User clicks habit checkbox]) --> A[Extract local date from browser]
-    A --> B[Send POST /api/habits/:id/toggle with ISO date]
-    B --> Normalize[Backend normalizes date to 00:00:00.000 UTC midnight]
-    Normalize --> Find{Date exists in completedDates?}
-    Find -- Yes --> Pull[Remove date: Uncheck]
-    Find -- No --> Push[Append date: Check]
-    Pull & Push --> Save[Save document & return updated habit]
-    Save --> End([UI renders updated check state])
-```
-
-**Why UTC midnight normalization?** A user in UTC+5:30 checking off a habit at 11 PM local time would store `18:30 UTC` — which is technically *the previous day* in UTC. Normalizing to `00:00:00.000 UTC` ensures the completion is always associated with the correct calendar day regardless of timezone.
-
-#### 3.2 Seeding Mechanism
-On server startup, the habits controller checks `await Habit.countDocuments()`. If the count is `0`, it inserts four default habits (Drink Water 💧, Read 📖, Work Out 🏋️, Meditate 🧘) to ensure an immediate ready-to-use experience without manual setup.
-
-#### 3.3 Alarm System
-- Each habit stores an optional `alarmTime` field in `"HH:mm"` 24-hour format.
-- The sidebar runs a `setInterval` tick every 60 seconds comparing the current local time against active `alarmTime` values.
-- When matched, a visual pulse indicator and browser notification are triggered.
+The **alarm system** runs a background `setInterval` tick in the sidebar every 60 seconds. It compares the current local time against each habit's `alarmTime` field (stored as `"HH:mm"`). When they match, a visual pulse indicator lights up on that habit, reminding the user it's time to complete it.
 
 ---
 
