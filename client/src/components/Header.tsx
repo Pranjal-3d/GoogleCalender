@@ -138,7 +138,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenModal, onToggleSidebar, sidebarOp
            </div>
         </div>
 
-        <div className="flex items-center gap-1 sm:gap-2 pr-1 ml-auto">
+        <div className="flex items-center gap-1 sm:gap-2 pr-1 ml-auto shrink-0">
            {/* Focus Mode Toggle */}
            <button 
              onClick={() => setFocusMode(!focusMode)}

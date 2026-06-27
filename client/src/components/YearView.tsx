@@ -43,7 +43,7 @@ const YearView: React.FC<YearViewProps> = ({ onCellClick }) => {
 
   return (
     <div className="h-full overflow-y-auto bg-white p-4">
-      <div className="grid grid-cols-4 gap-6 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
         {months.map(monthStart => {
           const days = eachDayOfInterval({
             start: startOfWeek(startOfMonth(monthStart)),
