@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   format,
   startOfMonth,
@@ -31,7 +32,8 @@ import {
   X,
   Bell,
   BellOff,
-  Clock8
+  Clock8,
+  GripHorizontal
 } from 'lucide-react';
 import { useCalendar } from '../context/CalendarContext';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -500,179 +502,225 @@ const Sidebar: React.FC<SidebarProps> = ({ onOpenBookingPage, onClose }) => {
           </AnimatePresence>
         </div>
       </aside>
-
       {/* Habit Editor Modal */}
-      <AnimatePresence>
-        {showHabitModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-            onClick={e => e.target === e.currentTarget && setShowHabitModal(false)}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showHabitModal && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl shadow-2xl p-6 w-[400px] border border-gray-100"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[300] flex items-start justify-center pt-24 pb-4 px-4 overflow-y-auto"
+              style={{ background: 'rgba(0,0,0,0.1)' }}
+              onClick={e => e.target === e.currentTarget && setShowHabitModal(false)}
             >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[20px] font-bold text-[#1f1f1f]">{editingHabit ? 'Edit Habit' : 'Create New Habit'}</h3>
-                {editingHabit && (
-                  <button 
-                    onClick={() => deleteHabit(editingHabit._id)}
-                    className="px-3 py-1 text-[12px] font-semibold text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                  >
-                    Delete
-                  </button>
-                )}
-              </div>
-              
-              <div className="space-y-5">
-                <div className="flex gap-4">
-                    <div className="w-16">
-                        <label className="text-[12px] font-bold text-[#5f6368] uppercase mb-1 block">Emoji</label>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="w-full max-w-[480px] shadow-2xl relative"
+                style={{
+                  background: '#f0f4f9',
+                  borderRadius: '24px',
+                  color: '#1f1f1f',
+                }}
+              >
+                {/* Header Bar */}
+                <div className="flex items-center justify-between px-3 py-2 bg-[#f0f4f9] rounded-t-3xl">
+                   <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 text-[#5f6368] transition-colors">
+                      <GripHorizontal size={18} />
+                   </button>
+                   <button 
+                      onClick={() => setShowHabitModal(false)} 
+                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 text-[#5f6368] transition-colors"
+                   >
+                      <X size={20} />
+                   </button>
+                </div>
+
+                <div className="px-6 pb-6 pt-1">
+                   {/* Title Input with Emoji */}
+                   <div className="flex items-center gap-5 pr-2 mb-6">
+                      <div className="relative shrink-0 flex items-center">
                         <input
                             type="text"
                             value={habitForm.emoji}
                             onChange={e => setHabitForm({ ...habitForm, emoji: e.target.value })}
-                            className="w-full bg-[#f1f3f4] border-none rounded-xl py-3 text-center text-xl focus:ring-2 focus:ring-[#1a73e8]"
+                            className="w-9 h-9 bg-white border border-[#dadce0] rounded-full text-center text-lg focus:ring-2 focus:ring-[#0b57d0]/20 outline-none shadow-sm transition-all"
+                            title="Emoji symbol"
                         />
-                    </div>
-                    <div className="flex-1">
-                        <label className="text-[12px] font-bold text-[#5f6368] uppercase mb-1 block">Habit Name</label>
+                      </div>
+                      <div className="flex-1">
                         <input
                             autoFocus
                             type="text"
+                            placeholder="Add habit title"
                             value={habitForm.name}
                             onChange={e => setHabitForm({ ...habitForm, name: e.target.value })}
-                            placeholder="e.g. Morning Run..."
-                            className="w-full bg-[#f1f3f4] border-none rounded-xl px-4 py-3 text-[15px] focus:ring-2 focus:ring-[#1a73e8]"
+                            className="w-full text-[22px] bg-transparent border-b-[2px] pb-[4px] focus:outline-none placeholder-[#5f6368]"
+                            style={{
+                              borderColor: '#0b57d0',
+                              color: '#1f1f1f'
+                            }}
                         />
-                    </div>
+                      </div>
+                   </div>
+
+                   <div className="flex flex-col gap-6">
+                      {/* Alarm Reminder */}
+                      <div className="flex items-start gap-5 pl-1">
+                         <Clock8 size={22} className="text-[#5f6368] mt-1 shrink-0" />
+                         <div className="flex-1 flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                               <span className="text-[15px] font-medium text-[#1f1f1f]">Daily Reminder Alarm</span>
+                               <button 
+                                   onClick={() => setHabitForm({ ...habitForm, isAlarmEnabled: !habitForm.isAlarmEnabled })}
+                                   className={`w-10 h-5 rounded-full relative transition-colors ${habitForm.isAlarmEnabled ? 'bg-[#0b57d0]' : 'bg-[#dadce0]'}`}
+                               >
+                                   <motion.div 
+                                       animate={{ x: habitForm.isAlarmEnabled ? 22 : 2 }}
+                                       className="absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm"
+                                   />
+                               </button>
+                            </div>
+                            
+                            {habitForm.isAlarmEnabled ? (
+                               <div className="flex items-center gap-3 bg-[#e2e7ec]/50 rounded-xl p-2.5 border border-[#dadce0] w-[180px]">
+                                   <Bell size={16} className="text-[#0b57d0]" />
+                                   <input
+                                       type="time"
+                                       value={habitForm.alarmTime}
+                                       onChange={e => setHabitForm({ ...habitForm, alarmTime: e.target.value })}
+                                       className="bg-transparent border-none text-[15px] font-medium text-[#1f1f1f] focus:ring-0 outline-none p-0 w-full"
+                                   />
+                               </div>
+                            ) : (
+                               <div className="text-[13px] text-[#5f6368]">Disabled</div>
+                            )}
+                            <p className="text-[11px] text-[#70757a] mt-1">Receive a reminder notification at this time every day.</p>
+                         </div>
+                      </div>
+
+                      {/* Info / Subcategory */}
+                      <div className="flex items-start gap-5 mt-2 pl-1">
+                         <Target size={22} className="text-[#5f6368] mt-1 shrink-0" />
+                         <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[15px] text-[#1f1f1f]">Daily Habit Tracker</span>
+                                <div className="w-3.5 h-3.5 rounded-full bg-orange-500"></div>
+                            </div>
+                            <div className="text-[13px] text-[#444746] mt-0.5">Recurring daily · Free · Visible in sidebar</div>
+                         </div>
+                      </div>
+                      
+                   </div>
                 </div>
 
-                <div className="bg-[#f8f9fa] rounded-2xl p-4 border border-[#e8eaed]">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                             <Bell size={18} className={habitForm.isAlarmEnabled ? 'text-[#1a73e8]' : 'text-[#5f6368]'} />
-                             <span className="text-[14px] font-semibold text-[#3c4043]">Daily Alarm</span>
-                        </div>
+                {/* Action Footer */}
+                <div className="px-5 py-4 flex justify-end items-center gap-4 bg-[#f0f4f9] rounded-b-3xl">
+                    {editingHabit && (
                         <button 
-                            onClick={() => setHabitForm({ ...habitForm, isAlarmEnabled: !habitForm.isAlarmEnabled })}
-                            className={`w-10 h-5 rounded-full relative transition-colors ${habitForm.isAlarmEnabled ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`}
+                          onClick={() => deleteHabit(editingHabit._id)}
+                          className="text-[#b3261e] text-sm font-medium mr-auto hover:bg-[#b3261e]/5 px-4 py-2 rounded-full transition-colors font-semibold"
                         >
-                            <motion.div 
-                                animate={{ x: habitForm.isAlarmEnabled ? 22 : 2 }}
-                                className="absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm"
-                            />
+                            Delete
                         </button>
-                    </div>
-
-                    {habitForm.isAlarmEnabled && (
-                        <div className="flex items-center gap-3 bg-white rounded-xl p-3 shadow-sm border border-[#e8eaed]">
-                            <Clock8 size={18} className="text-[#1a73e8]" />
-                            <input
-                                type="time"
-                                value={habitForm.alarmTime}
-                                onChange={e => setHabitForm({ ...habitForm, alarmTime: e.target.value })}
-                                className="flex-1 bg-transparent border-none text-[16px] font-medium text-[#1f1f1f] focus:ring-0 outline-none"
-                            />
-                        </div>
                     )}
-                    <p className="text-[11px] text-[#70757a] mt-3">Receive a reminder notification at this time every day.</p>
+                    
+                    <button
+                      onClick={() => setShowHabitModal(false)}
+                      className="text-[#0b57d0] text-sm font-medium hover:bg-black/5 px-4 py-2 rounded-full transition-colors font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    
+                    <button 
+                      disabled={!habitForm.name.trim()}
+                      onClick={handleSaveHabit}
+                      className="bg-[#0b57d0] hover:bg-[#0842a0] text-white text-sm font-semibold px-6 py-2.5 rounded-full shadow-sm transition-colors focus:outline-none disabled:opacity-50"
+                    >
+                      Save
+                    </button>
                 </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-8">
-                <button
-                  onClick={() => setShowHabitModal(false)}
-                  className="px-6 py-2.5 rounded-2xl text-[14px] font-bold text-[#5f6368] hover:bg-gray-100 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveHabit}
-                  disabled={!habitForm.name.trim()}
-                  className="px-8 py-2.5 rounded-2xl text-[14px] font-bold text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50"
-                >
-                  Save Habit
-                </button>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Add Calendar Modal */}
-      <AnimatePresence>
-        {showAddCalendarModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30"
-            onClick={e => e.target === e.currentTarget && setShowAddCalendarModal(false)}
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showAddCalendarModal && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl shadow-2xl p-6 w-[360px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/30"
+              onClick={e => e.target === e.currentTarget && setShowAddCalendarModal(false)}
             >
-              <h3 className="text-[18px] font-medium text-[#1f1f1f] mb-5">Add other calendar</h3>
-              
-              <div className="mb-4">
-                <label className="text-[13px] text-[#5f6368] mb-1.5 block">Calendar name</label>
-                <input
-                  autoFocus
-                  type="text"
-                  value={newCalendarName}
-                  onChange={e => setNewCalendarName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddCalendar()}
-                  placeholder="e.g. Family, Work..."
-                  className="w-full border-b-2 border-[#dadce0] focus:border-[#1a73e8] pb-1 text-[15px] text-[#1f1f1f] outline-none bg-transparent transition-colors"
-                />
-              </div>
-
-              <div className="mb-6">
-                <label className="text-[13px] text-[#5f6368] mb-2 block">Color</label>
-                <div className="flex gap-2 flex-wrap">
-                  {CALENDAR_COLORS.map(color => (
-                    <button
-                      key={color}
-                      onClick={() => setNewCalendarColor(color)}
-                      className="w-7 h-7 rounded-full transition-transform hover:scale-110"
-                      style={{
-                        background: color,
-                        outline: newCalendarColor === color ? `3px solid ${color}` : 'none',
-                        outlineOffset: '2px',
-                      }}
-                    />
-                  ))}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-2xl shadow-2xl p-6 w-[360px]"
+              >
+                <h3 className="text-[18px] font-medium text-[#1f1f1f] mb-5">Add other calendar</h3>
+                
+                <div className="mb-4">
+                  <label className="text-[13px] text-[#5f6368] mb-1.5 block">Calendar name</label>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newCalendarName}
+                    onChange={e => setNewCalendarName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddCalendar()}
+                    placeholder="e.g. Family, Work..."
+                    className="w-full border-b-2 border-[#dadce0] focus:border-[#1a73e8] pb-1 text-[15px] text-[#1f1f1f] outline-none bg-transparent transition-colors"
+                  />
                 </div>
-              </div>
 
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setShowAddCalendarModal(false)}
-                  className="px-5 py-2 rounded-full text-[14px] font-medium text-[#444746] hover:bg-gray-100 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddCalendar}
-                  disabled={!newCalendarName.trim()}
-                  className="px-5 py-2 rounded-full text-[14px] font-medium text-white bg-[#1a73e8] hover:bg-[#1557b0] transition-colors disabled:opacity-50"
-                >
-                  Add
-                </button>
-              </div>
+                <div className="mb-6">
+                  <label className="text-[13px] text-[#5f6368] mb-2 block">Color</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {CALENDAR_COLORS.map(color => (
+                      <button
+                        key={color}
+                        onClick={() => setNewCalendarColor(color)}
+                        className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+                        style={{
+                          background: color,
+                          outline: newCalendarColor === color ? `3px solid ${color}` : 'none',
+                          outlineOffset: '2px',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowAddCalendarModal(false)}
+                    className="px-5 py-2 rounded-full text-[14px] font-medium text-[#444746] hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddCalendar}
+                    disabled={!newCalendarName.trim()}
+                    className="px-5 py-2 rounded-full text-[14px] font-medium text-white bg-[#1a73e8] hover:bg-[#1557b0] transition-colors disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 };
