@@ -1,0 +1,63 @@
+SDE Intern Assignment: Google Calendar Clone
+
+Overview
+You are tasked with building a high-fidelity full-stack clone of Google Calendar, focusing on delivering a highly interactive, visually smooth, and logically consistent user experience.
+
+The goal of this assignment is to evaluate your ability to design and implement a complete web application that combines strong frontend design and user interaction handling with backend logic for data management and synchronization.
+
+
+Objective
+Build a system that:
+Replicates the core functionality of Google Calendar, including event creation, modification, and viewing.
+Demonstrates smooth user interactions, transitions, and animations.
+Implements backend logic and persistent storage.
+Closely resembles Google Calendar in terms of UI, interactions, and overall user experience.
+
+
+Mandatory Requirements
+Frontend Development:
+Develop a responsive UI supporting monthly, weekly, and daily views.
+Allow users to create, edit, delete, drag-and-drop, and resize events.
+Provide interactive modals or side panels for event details.
+The interface should closely resemble Google Calendar.
+
+Backend Development:
+Build APIs to support all calendar functionalities.
+Persist data using SQLite, PostgreSQL, or MongoDB.
+Store event timestamps in UTC and display them in the user's local timezone.
+Detect overlapping events and notify users before saving.
+
+Documentation:
+Include setup instructions.
+Explain architecture and technology choices.
+Discuss business logic and edge cases.
+Explain how animations/interactions were implemented.
+Suggest future enhancements.
+
+Note: Host your amazing calendar on any free hosting platform ( Netlify, Vercel , Render ) and share the hosted link with us in shared form. 
+
+
+Bonus Features
+Authentication (email/password or OAuth simulation).
+Recurring events (daily, weekly, monthly).
+Editing recurring event instances.
+Offline draft support using local storage.
+Anything you want in that calendar as feature you are free to surprise us. 
+
+
+
+
+Deliverables
+Submit a GitHub repository containing:
+Frontend source code.
+Backend source code.
+Database schema/migrations.
+README.md with complete documentation.
+Architecture diagram illustrating system components and data flow.
+Submit the hosted link.
+
+Evaluation Criteria
+UI Fidelity to Google Calendar – 25% Frontend Architecture – 20% Backend Design and APIs – 25% Edge Case Handling – 15%
+Code Quality and Documentation – 15% 
+
+please start making this correctly so tat my assignment get selcted for backened use mongo db and for frontened use typscript please make ui very unique as it weight for evalation is 25%
