@@ -103,7 +103,7 @@ sequenceDiagram
     participant Ctx as CalendarContext State
     participant AI as OpenRouter (GPT-4o-Mini)
     participant API as Express Server API
-    database DB as MongoDB
+    participant DB as MongoDB (Database)
 
     User->>UI: Type: "Schedule focus block tomorrow afternoon"
     UI->>Ctx: Extract upcoming 14-day schedule & current date
@@ -142,11 +142,11 @@ flowchart TD
     style Save fill:#e6f4ea,stroke:#137333
 
     Start([User clicks habit check-box]) --> Fetch[Extract Local Current Date]
-    Fetch --> Toggle[Send POST /api/habits/:id/toggle]
+    Fetch --> Toggle["Send POST /api/habits/:id/toggle"]
     Toggle --> Normalize[Backend normalizes Date target to 00:00:00.000 UTC]
     Normalize --> Find{Does date exist in completedDates array?}
-    Find -- Yes --> Pull[Remove Date from array (Uncheck)]
-    Find -- No --> Push[Append Date to array (Check)]
+    Find -- Yes --> Pull["Remove Date from array (Uncheck)"]
+    Find -- No --> Push["Append Date to array (Check)"]
     Pull & Push --> Save[Save Habit & return updated document]
     Save --> End([UI renders updated checked/unchecked status])
 ```
