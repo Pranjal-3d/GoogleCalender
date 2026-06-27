@@ -9,7 +9,7 @@ interface AppointmentPanelProps {
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const API = 'http://localhost:5000/api/events';
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/events`;
 
 const AppointmentPanel: React.FC<AppointmentPanelProps> = ({ onClose }) => {
   const { fetchEvents } = useCalendar();
@@ -97,10 +97,15 @@ const AppointmentPanel: React.FC<AppointmentPanelProps> = ({ onClose }) => {
         startTime: now.toISOString(),
         endTime: endDate.toISOString(),
         eventType: 'appointment',
-        description: bookingDescription,
+        description: `${bookingDescription}\nDuration: ${duration}`,
         location: location,
         meetLink: meetEnabled ? 'https://meet.google.com/new' : '',
-        color: '#f59e0b'
+        color: '#f59e0b',
+        isRecurring: true,
+        metadata: {
+            availability,
+            duration
+        }
       };
       
       await axios.post(`${API}${force ? '?force=true' : ''}`, payload);
@@ -120,12 +125,13 @@ const AppointmentPanel: React.FC<AppointmentPanelProps> = ({ onClose }) => {
   };
 
   return (
+    <>
     <motion.div
-      initial={{ x: -400, opacity: 0 }}
+      initial={{ x: -480, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      exit={{ x: -400, opacity: 0 }}
-      transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
-      className="absolute top-0 left-0 bottom-0 w-[480px] z-[150] shadow-2xl flex flex-col bg-white"
+      exit={{ x: -480, opacity: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="fixed top-0 left-0 bottom-0 w-full sm:w-[480px] z-[150] shadow-[10px_0_30px_rgba(0,0,0,0.1)] flex flex-col bg-white"
       style={{
         borderRight: '1px solid var(--border)',
       }}
@@ -208,17 +214,22 @@ const AppointmentPanel: React.FC<AppointmentPanelProps> = ({ onClose }) => {
                         {DAYS.map((day) => {
                            const isAvailable = availability[day].active;
                            return (
-                               <div key={day} className="flex flex-col gap-2">
-                                  <div className="flex items-center gap-3">
-                                     <span className="text-[13px] font-medium w-8 text-[#444746]">{day}</span>
+                               <div key={day} className="flex flex-col gap-2 py-1">
+                                  <div className="flex items-start gap-3">
+                                     <div className="flex items-center h-8">
+                                         <input 
+                                             type="checkbox" 
+                                             checked={isAvailable}
+                                             onChange={() => toggleDay(day)}
+                                             className="w-4 h-4 rounded text-[#0b57d0] cursor-pointer"
+                                         />
+                                     </div>
+                                     <span className="text-[13px] font-medium w-8 h-8 flex items-center text-[#444746]">{day}</span>
                                      
                                      {!isAvailable ? (
-                                         <>
-                                             <span className="text-[14px] text-[#444746] flex-1 ml-2 italic">Unavailable</span>
-                                             <button onClick={() => addSlot(day)} className="p-1.5 rounded-full hover:bg-black/5 text-[#5f6368] transition-colors" title="Add a period">
-                                                 <Plus size={18} />
-                                             </button>
-                                         </>
+                                         <div className="flex-1 h-8 flex items-center">
+                                             <span className="text-[14px] text-[#444746] italic opacity-60">Unavailable</span>
+                                         </div>
                                      ) : (
                                          <div className="flex-1 space-y-2">
                                              {availability[day].slots.map((slot, index) => (
@@ -239,9 +250,22 @@ const AppointmentPanel: React.FC<AppointmentPanelProps> = ({ onClose }) => {
                                                          />
                                                      </div>
                                                      <div className="flex items-center gap-1 ml-auto">
-                                                        <button onClick={() => removeSlot(day, index)} className="p-1.5 rounded-full hover:bg-black/5 text-[#5f6368] transition-colors" title="Remove slot">
-                                                           <Slash size={16} />
+                                                        <button 
+                                                            onClick={() => removeSlot(day, index)} 
+                                                            className="p-1.5 rounded-full hover:bg-red-50 text-[#5f6368] hover:text-red-500 transition-colors" 
+                                                            title="Remove slot"
+                                                        >
+                                                           <X size={14} />
                                                         </button>
+                                                        {index === availability[day].slots.length - 1 && (
+                                                            <button 
+                                                                onClick={() => addSlot(day)} 
+                                                                className="p-1.5 rounded-full hover:bg-blue-50 text-[#1a73e8] transition-colors" 
+                                                                title="Add more slots for this day"
+                                                            >
+                                                                <Plus size={16} />
+                                                            </button>
+                                                        )}
                                                      </div>
                                                  </div>
                                              ))}
@@ -354,6 +378,7 @@ const AppointmentPanel: React.FC<AppointmentPanelProps> = ({ onClose }) => {
          </button>
       </div>
     </motion.div>
+    </>
   );
 };
 

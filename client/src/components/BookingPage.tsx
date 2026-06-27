@@ -16,15 +16,74 @@ const BookingPage: React.FC<BookingPageProps> = ({ onClose }) => {
   const [duration, setDuration] = useState('30 min');
   const [description, setDescription] = useState('Book a meeting with me using this link.');
   const [location, setLocation] = useState('Google Meet');
-  const [availability, setAvailability] = useState({
-    Mon: { active: true, start: '9:00 AM', end: '5:00 PM' },
-    Tue: { active: true, start: '9:00 AM', end: '5:00 PM' },
-    Wed: { active: true, start: '9:00 AM', end: '5:00 PM' },
-    Thu: { active: true, start: '9:00 AM', end: '5:00 PM' },
-    Fri: { active: true, start: '9:00 AM', end: '5:00 PM' },
-    Sat: { active: false, start: '9:00 AM', end: '5:00 PM' },
-    Sun: { active: false, start: '9:00 AM', end: '5:00 PM' },
-  } as Record<string, { active: boolean; start: string; end: string }>);
+  const [availability, setAvailability] = useState<Record<string, { active: boolean, slots: { start: string, end: string }[] }>>({
+    Sun: { active: false, slots: [{ start: '9:00am', end: '5:00pm' }] },
+    Mon: { active: true, slots: [{ start: '9:00am', end: '5:00pm' }] },
+    Tue: { active: true, slots: [{ start: '9:00am', end: '5:00pm' }] },
+    Wed: { active: true, slots: [{ start: '9:00am', end: '5:00pm' }] },
+    Thu: { active: true, slots: [{ start: '9:00am', end: '5:00pm' }] },
+    Fri: { active: true, slots: [{ start: '9:00am', end: '5:00pm' }] },
+    Sat: { active: false, slots: [{ start: '9:00am', end: '5:00pm' }] },
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const res = await fetch(`${baseUrl}/api/events`);
+        const events = await res.json();
+        const latestAppt = events.filter((e: any) => e.eventType === 'appointment').pop();
+        
+        if (latestAppt) {
+          setTitle(latestAppt.title);
+          setDescription(latestAppt.description.split('\n')[0]);
+          setLocation(latestAppt.location || 'Online');
+          if (latestAppt.metadata) {
+            if (latestAppt.metadata.availability) setAvailability(latestAppt.metadata.availability);
+            if (latestAppt.metadata.duration) setDuration(latestAppt.metadata.duration);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load booking schedule', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSchedule();
+  }, []);
+
+  const handleSaveChanges = async () => {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const payload = {
+        title,
+        description: `${description}\nDuration: ${duration}`,
+        location,
+        eventType: 'appointment',
+        startTime: new Date().toISOString(),
+        endTime: new Date(Date.now() + 3600000).toISOString(),
+        isRecurring: true,
+        metadata: {
+          availability,
+          duration
+        }
+      };
+      
+      await fetch(`${baseUrl}/api/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      setTab('overview');
+      alert('Schedule updated successfully!');
+    } catch (err) {
+      console.error('Failed to save changes', err);
+      alert('Failed to save changes');
+    }
+  };
 
   const bookingUrl = `https://calendar.app.google/booking/pranjal-srivastava`;
 
@@ -38,7 +97,10 @@ const BookingPage: React.FC<BookingPageProps> = ({ onClose }) => {
   const toggleDay = (day: string) => {
     setAvailability(prev => ({
       ...prev,
-      [day]: { ...prev[day], active: !prev[day].active },
+      [day]: { 
+          ...prev[day], 
+          active: !prev[day].active 
+      },
     }));
   };
 
@@ -239,42 +301,61 @@ const BookingPage: React.FC<BookingPageProps> = ({ onClose }) => {
                   {/* Availability */}
                   <div>
                     <label className="text-[13px] text-[#5f6368] block mb-3">Weekly availability</label>
-                    <div className="space-y-2">
-                      {Object.entries(availability).map(([day, slot]) => (
-                        <div key={day} className="flex items-center gap-3">
-                          <button
-                            onClick={() => toggleDay(day)}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${slot.active ? 'bg-[#1a73e8]' : 'bg-gray-300'}`}
-                          >
-                            <span
-                              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${slot.active ? 'left-6' : 'left-0.5'}`}
-                            />
-                          </button>
-                          <span className={`text-[13px] w-8 ${slot.active ? 'text-[#1f1f1f]' : 'text-[#aaa]'}`}>{day}</span>
-                          {slot.active && (
-                            <>
-                              <input
-                                type="text"
-                                value={slot.start}
-                                onChange={e => setAvailability(prev => ({ ...prev, [day]: { ...prev[day], start: e.target.value } }))}
-                                className="bg-[#f1f3f4] rounded px-2 py-1 text-[12px] w-20 outline-none text-center text-[#1f1f1f]"
-                              />
-                              <span className="text-[#5f6368] text-sm">–</span>
-                              <input
-                                type="text"
-                                value={slot.end}
-                                onChange={e => setAvailability(prev => ({ ...prev, [day]: { ...prev[day], end: e.target.value } }))}
-                                className="bg-[#f1f3f4] rounded px-2 py-1 text-[12px] w-20 outline-none text-center text-[#1f1f1f]"
-                              />
-                            </>
-                          )}
-                          {!slot.active && <span className="text-[12px] text-[#aaa]">Unavailable</span>}
+                    <div className="space-y-3">
+                      {Object.entries(availability).map(([day, dayData]) => (
+                        <div key={day} className="flex flex-col gap-2">
+                           <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => toggleDay(day)}
+                                className={`w-10 h-5 rounded-full transition-colors relative ${dayData.active ? 'bg-[#1a73e8]' : 'bg-gray-300'}`}
+                              >
+                                <span
+                                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${dayData.active ? 'left-5' : 'left-0.5'}`}
+                                />
+                              </button>
+                              <span className={`text-[13px] font-medium w-8 ${dayData.active ? 'text-[#1f1f1f]' : 'text-[#aaa]'}`}>{day}</span>
+                              
+                              {!dayData.active ? (
+                                <span className="text-[12px] text-[#aaa] italic">Unavailable</span>
+                              ) : (
+                                <div className="flex-1 space-y-2">
+                                  {dayData.slots.map((s, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        value={s.start}
+                                        onChange={e => {
+                                          const newSlots = [...dayData.slots];
+                                          newSlots[idx].start = e.target.value;
+                                          setAvailability(prev => ({ ...prev, [day]: { ...prev[day], slots: newSlots } }));
+                                        }}
+                                        className="bg-[#f1f3f4] rounded px-2 py-1 text-[12px] w-20 outline-none text-center text-[#1f1f1f]"
+                                      />
+                                      <span className="text-[#5f6368] text-xs">–</span>
+                                      <input
+                                        type="text"
+                                        value={s.end}
+                                        onChange={e => {
+                                          const newSlots = [...dayData.slots];
+                                          newSlots[idx].end = e.target.value;
+                                          setAvailability(prev => ({ ...prev, [day]: { ...prev[day], slots: newSlots } }));
+                                        }}
+                                        className="bg-[#f1f3f4] rounded px-2 py-1 text-[12px] w-20 outline-none text-center text-[#1f1f1f]"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <button className="px-6 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[14px] font-medium transition-colors">
+                  <button 
+                    onClick={handleSaveChanges}
+                    className="w-full px-6 py-3 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[14px] font-medium transition-all shadow-md active:scale-[0.98]"
+                  >
                     Save changes
                   </button>
                 </div>

@@ -19,6 +19,7 @@ export interface IEvent extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
+  metadata?: any;
 }
 
 const EventSchema: Schema = new Schema({
@@ -37,7 +38,8 @@ const EventSchema: Schema = new Schema({
     frequency: { type: String, enum: ['daily', 'weekly', 'monthly'] },
     interval: { type: Number, default: 1 },
     endDate: { type: Date }
-  }
+  },
+  metadata: { type: Schema.Types.Mixed, default: {} }
 }, {
   timestamps: true
 });

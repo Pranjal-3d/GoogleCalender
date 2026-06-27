@@ -177,8 +177,8 @@ const App: React.FC = () => {
                 ${isMobile ? 'fixed inset-y-0 left-0 bg-white shadow-2xl' : 'relative'}
             `}
             style={{ 
-                width: sidebarOpen ? (isMobile ? '280px' : '256px') : '0px',
-                transform: isMobile && !sidebarOpen ? 'translateX(-100%)' : 'translateX(0)'
+                width: (sidebarOpen && !isAppointmentPanelOpen) ? (isMobile ? '280px' : '256px') : '0px',
+                transform: (isMobile && (!sidebarOpen || isAppointmentPanelOpen)) ? 'translateX(-100%)' : 'translateX(0)'
             }}
           >
             <Sidebar 
@@ -189,12 +189,12 @@ const App: React.FC = () => {
 
           {/* Main calendar area */}
           <main
-            className="flex-1 overflow-x-auto overflow-y-hidden relative transition-all duration-300 min-w-0"
+            className="flex-1 overflow-hidden relative transition-all duration-300"
             style={{ 
                 marginRight: !isMobile && aiOpen ? '420px' : '0px'
             }}
           >
-            <div className="min-w-[600px] sm:min-w-0 h-full">
+            <div className="w-full h-full">
                 <CalendarView
                     onEventClick={(event: any) => handleOpenModal('event', event)}
                     onCellClick={(date: Date) => handleOpenModal('event', undefined, date)}

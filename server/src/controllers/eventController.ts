@@ -23,10 +23,11 @@ export const getEvents = async (req: Request, res: Response) => {
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const { title, startTime, endTime, description, color, location, guests, meetLink, isRecurring, recurrenceRule, eventType } = req.body;
+    const { title, startTime, endTime, description, color, location, guests, meetLink, isRecurring, recurrenceRule, eventType, metadata } = req.body;
 
-    // Check for overlaps
-    const overlapping = await Event.findOne({
+    // Check for overlaps (skip for appointment templates)
+    const overlapping = eventType === 'appointment' ? null : await Event.findOne({
+      eventType: { $ne: 'appointment' },
       $or: [
         { startTime: { $lt: new Date(endTime), $gte: new Date(startTime) } },
         { endTime: { $gt: new Date(startTime), $lte: new Date(endTime) } },
@@ -52,7 +53,8 @@ export const createEvent = async (req: Request, res: Response) => {
       meetLink,
       eventType: eventType || 'event',
       isRecurring,
-      recurrenceRule
+      recurrenceRule,
+      metadata
     });
 
     const savedEvent = await newEvent.save();
